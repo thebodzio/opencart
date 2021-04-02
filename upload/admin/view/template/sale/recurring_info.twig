@@ -2,7 +2,7 @@
 <div id="content">
   <div class="page-header">
     <div class="container-fluid">
-      <div class="float-right"><a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-light"><i class="fas fa-reply"></i></a></div>
+      <div class="float-right"><a href="{{ back }}" data-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fas fa-reply"></i></a></div>
       <h1>{{ heading_title }}</h1>
       <ol class="breadcrumb">
         {% for breadcrumb in breadcrumbs %}
@@ -105,7 +105,8 @@
     </div>
     <div class="card">
       <div class="card-header"><i class="fas fa-list"></i> {{ text_transaction }}</div>
-      <div class="card-body"> {{ buttons }}
+      <div class="card-body">
+        {{ buttons }}
         <table class="table table-bordered">
           <thead>
             <tr>
@@ -134,4 +135,4 @@
     </div>
   </div>
 </div>
-{{ footer }} 
+{{ footer }}

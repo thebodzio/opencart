@@ -1,8 +1,9 @@
 <?php
-class ControllerCustomerCustomField extends Controller {
-	private $error = array();
+namespace Opencart\Admin\Controller\Customer;
+class CustomField extends \Opencart\System\Engine\Controller {
+	private array $error = [];
 
-	public function index() {
+	public function index(): void {
 		$this->load->language('customer/custom_field');
 
 		$this->document->setTitle($this->language->get('heading_title'));
@@ -12,105 +13,31 @@ class ControllerCustomerCustomField extends Controller {
 		$this->getList();
 	}
 
-	public function add() {
+	public function add(): void {
 		$this->load->language('customer/custom_field');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$this->load->model('customer/custom_field');
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_customer_custom_field->addCustomField($this->request->post);
-
-			$this->session->data['success'] = $this->language->get('text_success');
-
-			$url = '';
-
-			if (isset($this->request->get['sort'])) {
-				$url .= '&sort=' . $this->request->get['sort'];
-			}
-
-			if (isset($this->request->get['order'])) {
-				$url .= '&order=' . $this->request->get['order'];
-			}
-
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			$this->response->redirect($this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url));
-		}
+		$this->model_customer_custom_field->addCustomField($this->request->post);
 
 		$this->getForm();
 	}
 
-	public function edit() {
+	public function edit(): void {
 		$this->load->language('customer/custom_field');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$this->load->model('customer/custom_field');
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_customer_custom_field->editCustomField($this->request->get['custom_field_id'], $this->request->post);
-
-			$this->session->data['success'] = $this->language->get('text_success');
-
-			$url = '';
-
-			if (isset($this->request->get['sort'])) {
-				$url .= '&sort=' . $this->request->get['sort'];
-			}
-
-			if (isset($this->request->get['order'])) {
-				$url .= '&order=' . $this->request->get['order'];
-			}
-
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			$this->response->redirect($this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url));
-		}
+		$this->model_customer_custom_field->editCustomField($this->request->get['custom_field_id'], $this->request->post);
 
 		$this->getForm();
 	}
 
-	public function delete() {
-		$this->load->language('customer/custom_field');
-
-		$this->document->setTitle($this->language->get('heading_title'));
-
-		$this->load->model('customer/custom_field');
-
-		if (isset($this->request->post['selected']) && $this->validateDelete()) {
-			foreach ($this->request->post['selected'] as $custom_field_id) {
-				$this->model_customer_custom_field->deleteCustomField($custom_field_id);
-			}
-
-			$this->session->data['success'] = $this->language->get('text_success');
-
-			$url = '';
-
-			if (isset($this->request->get['sort'])) {
-				$url .= '&sort=' . $this->request->get['sort'];
-			}
-
-			if (isset($this->request->get['order'])) {
-				$url .= '&order=' . $this->request->get['order'];
-			}
-
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			$this->response->redirect($this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url));
-		}
-
-		$this->getList();
-	}
-
-	protected function getList() {
+	protected function getList(): void {
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
@@ -124,7 +51,7 @@ class ControllerCustomerCustomField extends Controller {
 		}
 
 		if (isset($this->request->get['page'])) {
-			$page = $this->request->get['page'];
+			$page = (int)$this->request->get['page'];
 		} else {
 			$page = 1;
 		}
@@ -143,29 +70,29 @@ class ControllerCustomerCustomField extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url)
-		);
+		];
 
-		$data['add'] = $this->url->link('customer/custom_field/add', 'user_token=' . $this->session->data['user_token'] . $url);
-		$data['delete'] = $this->url->link('customer/custom_field/delete', 'user_token=' . $this->session->data['user_token'] . $url);
+		$data['add'] = $this->url->link('customer/custom_field|add', 'user_token=' . $this->session->data['user_token'] . $url);
+		$data['delete'] = $this->url->link('customer/custom_field|delete', 'user_token=' . $this->session->data['user_token'] . $url);
 
-		$data['custom_fields'] = array();
+		$data['custom_fields'] = [];
 
-		$filter_data = array(
+		$filter_data = [
 			'sort'  => $sort,
 			'order' => $order,
-			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit' => $this->config->get('config_limit_admin')
-		);
+			'start' => ($page - 1) * $this->config->get('config_pagination_admin'),
+			'limit' => $this->config->get('config_pagination_admin')
+		];
 
 		$custom_field_total = $this->model_customer_custom_field->getTotalCustomFields();
 
@@ -207,15 +134,15 @@ class ControllerCustomerCustomField extends Controller {
 					break;
 			}
 
-			$data['custom_fields'][] = array(
+			$data['custom_fields'][] = [
 				'custom_field_id' => $result['custom_field_id'],
 				'name'            => $result['name'],
 				'location'        => $this->language->get('text_' . $result['location']),
 				'type'            => $type,
 				'status'          => $result['status'],
 				'sort_order'      => $result['sort_order'],
-				'edit'            => $this->url->link('customer/custom_field/edit', 'user_token=' . $this->session->data['user_token'] . '&custom_field_id=' . $result['custom_field_id'] . $url)
-			);
+				'edit'            => $this->url->link('customer/custom_field|edit', 'user_token=' . $this->session->data['user_token'] . '&custom_field_id=' . $result['custom_field_id'] . $url)
+			];
 		}
 
 		if (isset($this->error['warning'])) {
@@ -235,7 +162,7 @@ class ControllerCustomerCustomField extends Controller {
 		if (isset($this->request->post['selected'])) {
 			$data['selected'] = (array)$this->request->post['selected'];
 		} else {
-			$data['selected'] = array();
+			$data['selected'] = [];
 		}
 
 		$url = '';
@@ -266,14 +193,14 @@ class ControllerCustomerCustomField extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$data['pagination'] = $this->load->controller('common/pagination', array(
+		$data['pagination'] = $this->load->controller('common/pagination', [
 			'total' => $custom_field_total,
 			'page'  => $page,
-			'limit' => $this->config->get('config_limit_admin'),
+			'limit' => $this->config->get('config_pagination_admin'),
 			'url'   => $this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
-		));
+		]);
 
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($custom_field_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($custom_field_total - $this->config->get('config_limit_admin'))) ? $custom_field_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $custom_field_total, ceil($custom_field_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($custom_field_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($custom_field_total - $this->config->get('config_pagination_admin'))) ? $custom_field_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $custom_field_total, ceil($custom_field_total / $this->config->get('config_pagination_admin')));
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
@@ -285,7 +212,7 @@ class ControllerCustomerCustomField extends Controller {
 		$this->response->setOutput($this->load->view('customer/custom_field_list', $data));
 	}
 
-	protected function getForm() {
+	protected function getForm(): void {
 		$data['text_form'] = !isset($this->request->get['custom_field_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
 
 		if (isset($this->error['warning'])) {
@@ -297,13 +224,13 @@ class ControllerCustomerCustomField extends Controller {
 		if (isset($this->error['name'])) {
 			$data['error_name'] = $this->error['name'];
 		} else {
-			$data['error_name'] = array();
+			$data['error_name'] = [];
 		}
 
 		if (isset($this->error['custom_field_value'])) {
 			$data['error_custom_field_value'] = $this->error['custom_field_value'];
 		} else {
-			$data['error_custom_field_value'] = array();
+			$data['error_custom_field_value'] = [];
 		}
 
 		$url = '';
@@ -320,22 +247,22 @@ class ControllerCustomerCustomField extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url)
-		);
+		];
 
 		if (!isset($this->request->get['custom_field_id'])) {
-			$data['action'] = $this->url->link('customer/custom_field/add', 'user_token=' . $this->session->data['user_token'] . $url);
+			$data['action'] = $this->url->link('customer/custom_field|add', 'user_token=' . $this->session->data['user_token'] . $url);
 		} else {
-			$data['action'] = $this->url->link('customer/custom_field/edit', 'user_token=' . $this->session->data['user_token'] . '&custom_field_id=' . $this->request->get['custom_field_id'] . $url);
+			$data['action'] = $this->url->link('customer/custom_field|edit', 'user_token=' . $this->session->data['user_token'] . '&custom_field_id=' . $this->request->get['custom_field_id'] . $url);
 		}
 
 		$data['cancel'] = $this->url->link('customer/custom_field', 'user_token=' . $this->session->data['user_token'] . $url);
@@ -353,9 +280,9 @@ class ControllerCustomerCustomField extends Controller {
 		if (isset($this->request->post['custom_field_description'])) {
 			$data['custom_field_description'] = $this->request->post['custom_field_description'];
 		} elseif (!empty($custom_field_info)) {
-			$data['custom_field_description'] = $this->model_customer_custom_field->getCustomFieldDescriptions($this->request->get['custom_field_id']);
+			$data['custom_field_description'] = $this->model_customer_custom_field->getDescriptions($this->request->get['custom_field_id']);
 		} else {
-			$data['custom_field_description'] = array();
+			$data['custom_field_description'] = [];
 		}
 
 		if (isset($this->request->post['location'])) {
@@ -409,39 +336,41 @@ class ControllerCustomerCustomField extends Controller {
 		if (isset($this->request->post['custom_field_value'])) {
 			$custom_field_values = $this->request->post['custom_field_value'];
 		} elseif (!empty($custom_field_info)) {
-			$custom_field_values = $this->model_customer_custom_field->getCustomFieldValueDescriptions($this->request->get['custom_field_id']);
+			$custom_field_values = $this->model_customer_custom_field->getValueDescriptions($this->request->get['custom_field_id']);
 		} else {
-			$custom_field_values = array();
+			$custom_field_values = [];
 		}
 
-		$data['custom_field_values'] = array();
+		$data['custom_field_values'] = [];
 
 		foreach ($custom_field_values as $custom_field_value) {
-			$data['custom_field_values'][] = array(
+			$data['custom_field_values'][] = [
 				'custom_field_value_id'          => $custom_field_value['custom_field_value_id'],
 				'custom_field_value_description' => $custom_field_value['custom_field_value_description'],
 				'sort_order'                     => $custom_field_value['sort_order']
-			);
+			];
 		}
 
 		if (isset($this->request->post['custom_field_customer_group'])) {
 			$custom_field_customer_groups = $this->request->post['custom_field_customer_group'];
 		} elseif (!empty($custom_field_info)) {
-			$custom_field_customer_groups = $this->model_customer_custom_field->getCustomFieldCustomerGroups($this->request->get['custom_field_id']);
+			$custom_field_customer_groups = $this->model_customer_custom_field->getCustomerGroups($this->request->get['custom_field_id']);
 		} else {
-			$custom_field_customer_groups = array();
+			$custom_field_customer_groups = [];
 		}
 
-		$data['custom_field_customer_group'] = array();
+		$data['custom_field_customer_group'] = [];
 
 		foreach ($custom_field_customer_groups as $custom_field_customer_group) {
-			$data['custom_field_customer_group'][] = $custom_field_customer_group['customer_group_id'];
+			if (isset($custom_field_customer_group['customer_group_id'])) {
+				$data['custom_field_customer_group'][] = $custom_field_customer_group['customer_group_id'];
+			}
 		}
 
-		$data['custom_field_required'] = array();
+		$data['custom_field_required'] = [];
 
 		foreach ($custom_field_customer_groups as $custom_field_customer_group) {
-			if ($custom_field_customer_group['required']) {
+			if (isset($custom_field_customer_group['required']) && $custom_field_customer_group['required'] && isset($custom_field_customer_group['customer_group_id'])) {
 				$data['custom_field_required'][] = $custom_field_customer_group['customer_group_id'];
 			}
 		}
@@ -457,7 +386,7 @@ class ControllerCustomerCustomField extends Controller {
 		$this->response->setOutput($this->load->view('customer/custom_field_form', $data));
 	}
 
-	protected function validateForm() {
+	public function save(): void {
 		if (!$this->user->hasPermission('modify', 'customer/custom_field')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
@@ -484,18 +413,40 @@ class ControllerCustomerCustomField extends Controller {
 			}
 		}
 
-		if (@preg_match('/' . html_entity_decode($this->request->post['validation'], ENT_QUOTES, 'UTF-8') . '/', null) === false) {
+		if ($this->request->post['type'] == 'text' && $this->request->post['validation'] && @preg_match(html_entity_decode($this->request->post['validation'], ENT_QUOTES, 'UTF-8'), null) === false) {
 			$this->error['validation'] = $this->language->get('error_validation');
 		}
 
-		return !$this->error;
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 
-	protected function validateDelete() {
-		if (!$this->user->hasPermission('modify', 'customer/custom_field')) {
-			$this->error['warning'] = $this->language->get('error_permission');
+	public function delete(): void {
+		$this->load->language('customer/custom_field');
+
+		$json = [];
+
+		if (isset($this->request->post['selected'])) {
+			$selected = $this->request->post['selected'];
+		} else {
+			$selected = [];
 		}
 
-		return !$this->error;
+		if (!$this->user->hasPermission('modify', 'customer/custom_field')) {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
+			$this->load->model('customer/custom_field');
+
+			foreach ($selected as $custom_field_id) {
+				$this->model_customer_custom_field->deleteCustomField($custom_field_id);
+			}
+
+			$json['success'] = $this->language->get('text_success');
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 }

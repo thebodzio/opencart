@@ -1,6 +1,7 @@
 <?php
-class ControllerCommonPagination extends Controller {
-	public function index($setting) {
+namespace Opencart\Catalog\Controller\Common;
+class Pagination extends \Opencart\System\Engine\Controller {
+	public function index(array $setting): string {
 		if (isset($setting['total'])) {
 			$total = $setting['total'];
 		} else {
@@ -28,13 +29,19 @@ class ControllerCommonPagination extends Controller {
 		$num_links = 8;
 		$num_pages = ceil($total / $limit);
 
+		if ($url && $page > 1 && $num_pages < $page) {
+			$back = true;
+		} else {
+			$back = false;
+		}
+
 		$data['page'] = $page;
 
 		if ($page > 1) {
-			$data['first'] = str_replace(array('&amp;page={page}', '?page={page}', '&page={page}'), '', $url);
+			$data['first'] = str_replace(['&amp;page={page}', '?page={page}', '&page={page}'], '', $url);
 
 			if ($page - 1 === 1) {
-				$data['prev'] = str_replace(array('&amp;page={page}', '?page={page}', '&page={page}'), '', $url);
+				$data['prev'] = str_replace(['&amp;page={page}', '?page={page}', '&page={page}'], '', $url);
 			} else {
 				$data['prev'] = str_replace('{page}', $page - 1, $url);
 			}
@@ -43,7 +50,7 @@ class ControllerCommonPagination extends Controller {
 			$data['prev'] = '';
 		}
 
-		$data['links'] = array();
+		$data['links'] = [];
 
 		if ($num_pages > 1) {
 			if ($num_pages <= $num_links) {
@@ -65,10 +72,10 @@ class ControllerCommonPagination extends Controller {
 			}
 
 			for ($i = $start; $i <= $end; $i++) {
-				$data['links'][] = array(
+				$data['links'][] = [
 					'page' => $i,
 					'href' => str_replace('{page}', $i, $url)
-				);
+				];
 			}
 		}
 
@@ -80,7 +87,7 @@ class ControllerCommonPagination extends Controller {
 			$data['last'] = '';
 		}
 
-		if ($num_pages > 1) {
+		if ($num_pages > 1 || $back) {
 			return $this->load->view('common/pagination', $data);
 		} else {
 			return '';

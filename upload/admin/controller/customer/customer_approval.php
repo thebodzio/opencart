@@ -1,21 +1,22 @@
 <?php
-class ControllerCustomerCustomerApproval extends Controller {
-	public function index() {
+namespace Opencart\Admin\Controller\Customer;
+class CustomerApproval extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$this->load->language('customer/customer_approval');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('customer/customer_approval', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
 		$data['user_token'] = $this->session->data['user_token'];
 
@@ -30,7 +31,7 @@ class ControllerCustomerCustomerApproval extends Controller {
 		$this->response->setOutput($this->load->view('customer/customer_approval', $data));	
 	}
 				
-	public function customer_approval() {
+	public function list(): void {
 		$this->load->language('customer/customer_approval');
 		
 		if (isset($this->request->get['filter_customer'])) {
@@ -46,7 +47,7 @@ class ControllerCustomerCustomerApproval extends Controller {
 		}
 		
 		if (isset($this->request->get['filter_customer_group_id'])) {
-			$filter_customer_group_id = $this->request->get['filter_customer_group_id'];
+			$filter_customer_group_id = (int)$this->request->get['filter_customer_group_id'];
 		} else {
 			$filter_customer_group_id = '';
 		}
@@ -64,22 +65,22 @@ class ControllerCustomerCustomerApproval extends Controller {
 		}
 						
 		if (isset($this->request->get['page'])) {
-			$page = $this->request->get['page'];
+			$page = (int)$this->request->get['page'];
 		} else {
 			$page = 1;
 		}		
 
-		$data['customer_approvals'] = array();
+		$data['customer_approvals'] = [];
 
-		$filter_data = array(
+		$filter_data = [
 			'filter_customer'          => $filter_customer,
 			'filter_email'             => $filter_email,
 			'filter_customer_group_id' => $filter_customer_group_id,
 			'filter_type'              => $filter_type,
 			'filter_date_added'        => $filter_date_added,
-			'start'                    => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit'                    => $this->config->get('config_limit_admin')
-		);
+			'start'                    => ($page - 1) * $this->config->get('config_pagination_admin'),
+			'limit'                    => $this->config->get('config_pagination_admin')
+		];
 
 		$this->load->model('customer/customer_approval');	
 
@@ -88,17 +89,17 @@ class ControllerCustomerCustomerApproval extends Controller {
 		$results = $this->model_customer_customer_approval->getCustomerApprovals($filter_data);
 
 		foreach ($results as $result) {
-			$data['customer_approvals'][] = array(
+			$data['customer_approvals'][] = [
 				'customer_id'    => $result['customer_id'],
 				'customer'       => $result['customer'],
 				'email'          => $result['email'],
 				'customer_group' => $result['customer_group'],
 				'type'           => $this->language->get('text_' . $result['type']),
 				'date_added'     => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
-				'approve'        => $this->url->link('customer/customer_approval/approve', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'] . '&type=' . $result['type']),
-				'deny'           => $this->url->link('customer/customer_approval/deny', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'] . '&type=' . $result['type']),
-				'edit'           => $this->url->link('customer/customer/edit', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'])
-			);
+				'approve'        => $this->url->link('customer/customer_approval|approve', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'] . '&type=' . $result['type']),
+				'deny'           => $this->url->link('customer/customer_approval|deny', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'] . '&type=' . $result['type']),
+				'edit'           => $this->url->link('customer/customer|edit', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'])
+			];
 		}
 
 		$url = '';
@@ -123,22 +124,22 @@ class ControllerCustomerCustomerApproval extends Controller {
 			$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
 		}
 
-		$data['pagination'] = $this->load->controller('common/pagination', array(
+		$data['pagination'] = $this->load->controller('common/pagination', [
 			'total' => $customer_approval_total,
 			'page'  => $page,
-			'limit' => $this->config->get('config_limit_admin'),
-			'url'   => $this->url->link('customer/customer_approval/customer_approval', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
-		));
+			'limit' => $this->config->get('config_pagination_admin'),
+			'url'   => $this->url->link('customer/customer_approval|customer_approval', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
+		]);
 
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($customer_approval_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($customer_approval_total - $this->config->get('config_limit_admin'))) ? $customer_approval_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $customer_approval_total, ceil($customer_approval_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($customer_approval_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($customer_approval_total - $this->config->get('config_pagination_admin'))) ? $customer_approval_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $customer_approval_total, ceil($customer_approval_total / $this->config->get('config_pagination_admin')));
 
 		$this->response->setOutput($this->load->view('customer/customer_approval_list', $data));
 	}
 
-	public function approve() {
+	public function approve(): void {
 		$this->load->language('customer/customer_approval');
 
-		$json = array();
+		$json = [];
 
 		if (!$this->user->hasPermission('modify', 'customer/customer_approval')) {
 			$json['error'] = $this->language->get('error_permission');
@@ -158,10 +159,10 @@ class ControllerCustomerCustomerApproval extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}	
 	
-	public function deny() {
+	public function deny(): void {
 		$this->load->language('customer/customer_approval');
 
-		$json = array();
+		$json = [];
 				
 		if (!$this->user->hasPermission('modify', 'customer/customer_approval')) {
 			$json['error'] = $this->language->get('error_permission');

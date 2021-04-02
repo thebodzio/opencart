@@ -1,6 +1,7 @@
 <?php
-class ControllerCommonCron extends Controller {
-	public function index() {
+namespace Opencart\Admin\Controller\Common;
+class Cron extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$time = time();
 
 		$this->load->model('setting/cron');

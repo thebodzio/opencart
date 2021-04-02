@@ -7,6 +7,7 @@ $_['text_success']            = 'Success: You have modified countries!';
 $_['text_list']               = 'Country List';
 $_['text_add']                = 'Add Country';
 $_['text_edit']               = 'Edit Country';
+$_['text_filter']             = 'Filter';
 
 // Column
 $_['column_name']             = 'Country Name';
@@ -31,6 +32,5 @@ $_['error_name']              = 'Country Name must be between 1 and 128 characte
 $_['error_default']           = 'Warning: This country cannot be deleted as it is currently assigned as the default store country!';
 $_['error_store']             = 'Warning: This country cannot be deleted as it is currently assigned to %s stores!';
 $_['error_address']           = 'Warning: This country cannot be deleted as it is currently assigned to %s address book entries!';
-$_['error_affiliate']         = 'Warning: This country cannot be deleted as it is currently assigned to %s affiliates!';
 $_['error_zone']              = 'Warning: This country cannot be deleted as it is currently assigned to %s zones!';
 $_['error_zone_to_geo_zone']  = 'Warning: This country cannot be deleted as it is currently assigned to %s zones to geo zones!';

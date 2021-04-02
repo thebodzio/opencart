@@ -1,6 +1,7 @@
 <?php
-class ControllerAccountNewsletter extends Controller {
-	public function index() {
+namespace Opencart\Catalog\Controller\Account;
+class Newsletter extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		if (!$this->customer->isLogged()) {
 			$this->session->data['redirect'] = $this->url->link('account/newsletter', 'language=' . $this->config->get('config_language'));
 
@@ -21,22 +22,22 @@ class ControllerAccountNewsletter extends Controller {
 			$this->response->redirect($this->url->link('account/account', 'language=' . $this->config->get('config_language')));
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_account'),
 			'href' => $this->url->link('account/account', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_newsletter'),
 			'href' => $this->url->link('account/newsletter', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
 		$data['action'] = $this->url->link('account/newsletter', 'language=' . $this->config->get('config_language'));
 

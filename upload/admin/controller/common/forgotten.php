@@ -1,8 +1,9 @@
 <?php
-class ControllerCommonForgotten extends Controller {
-	private $error = array();
+namespace Opencart\Admin\Controller\Common;
+class Forgotten extends \Opencart\System\Engine\Controller {
+	private array $error = [];
 
-	public function index() {
+	public function index(): void {
 		if ($this->user->isLogged() && isset($this->request->get['user_token']) && ($this->request->get['user_token'] == $this->session->data['user_token'])) {
 			$this->response->redirect($this->url->link('common/dashboard'));
 		}
@@ -31,17 +32,17 @@ class ControllerCommonForgotten extends Controller {
 			$data['error_warning'] = '';
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard')
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('common/forgotten')
-		);
+		];
 
 		$data['action'] = $this->url->link('common/forgotten');
 
@@ -59,7 +60,7 @@ class ControllerCommonForgotten extends Controller {
 		$this->response->setOutput($this->load->view('common/forgotten', $data));
 	}
 
-	protected function validate() {
+	protected function validate(): bool {
 		if (!isset($this->request->post['email'])) {
 			$this->error['warning'] = $this->language->get('error_email');
 		} elseif (!$this->model_user_user->getTotalUsersByEmail($this->request->post['email'])) {

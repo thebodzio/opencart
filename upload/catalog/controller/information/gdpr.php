@@ -1,6 +1,7 @@
 <?php
-class ControllerInformationGdpr extends Controller {
-	public function index() {
+namespace Opencart\Catalog\Controller\Information;
+class Gdpr extends \Opencart\System\Engine\Controller {
+	public function index(): void {
 		$this->load->model('catalog/information');
 
 		$information_info = $this->model_catalog_information->getInformation($this->config->get('config_gdpr_id'));
@@ -10,17 +11,17 @@ class ControllerInformationGdpr extends Controller {
 
 			$this->document->setTitle($this->language->get('heading_title'));
 
-			$data['breadcrumbs'] = array();
+			$data['breadcrumbs'] = [];
 
-			$data['breadcrumbs'][] = array(
+			$data['breadcrumbs'][] = [
 				'text' => $this->language->get('text_home'),
 				'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-			);
+			];
 
-			$data['breadcrumbs'][] = array(
+			$data['breadcrumbs'][] = [
 				'text' => $this->language->get('heading_title'),
 				'href' => $this->url->link('information/gdpr', 'language=' . $this->config->get('config_language'))
-			);
+			];
 
 			$data['title'] = $information_info['title'];
 
@@ -41,7 +42,7 @@ class ControllerInformationGdpr extends Controller {
 
 			$this->response->setOutput($this->load->view('information/gdpr', $data));
 		} else {
-			return new Action('error/not_found');
+			return new \Opencart\System\Engine\Action('error/not_found');
 		}
 	}
 
@@ -68,10 +69,10 @@ class ControllerInformationGdpr extends Controller {
 	 *	processing = 2
 	 *	denied     = -1
 	*/
-	public function action() {
+	public function action(): void {
 		$this->load->language('information/gdpr');
 
-		$json = array();
+		$json = [];
 
 		if (isset($this->request->post['email'])) {
 			$email = $this->request->post['email'];
@@ -91,10 +92,10 @@ class ControllerInformationGdpr extends Controller {
 		}
 
 		// Validate Action
-		$allowed = array(
+		$allowed = [
 			'export',
 			'remove'
-		);
+		];
 
 		if (!in_array($action, $allowed)) {
 			$json['error']['action'] = $this->language->get('error_action');
@@ -127,7 +128,7 @@ class ControllerInformationGdpr extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-	public function success() {
+	public function success(): void {
 		if (isset($this->request->get['code'])) {
 			$code = $this->request->get['code'];
 		} else {
@@ -143,22 +144,22 @@ class ControllerInformationGdpr extends Controller {
 
 			$this->document->setTitle($this->language->get('heading_title'));
 
-			$data['breadcrumbs'] = array();
+			$data['breadcrumbs'] = [];
 
-			$data['breadcrumbs'][] = array(
+			$data['breadcrumbs'][] = [
 				'text' => $this->language->get('text_home'),
 				'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-			);
+			];
 
-			$data['breadcrumbs'][] = array(
+			$data['breadcrumbs'][] = [
 				'text' => $this->language->get('text_account'),
 				'href' => $this->url->link('information/gdpr', 'language=' . $this->config->get('config_language'))
-			);
+			];
 
-			$data['breadcrumbs'][] = array(
+			$data['breadcrumbs'][] = [
 				'text' => $this->language->get('heading_title'),
-				'href' => $this->url->link('information/gdpr/success', 'language=' . $this->config->get('config_language'))
-			);
+				'href' => $this->url->link('information/gdpr|success', 'language=' . $this->config->get('config_language'))
+			];
 
 			if ($gdpr_info['status'] == 0) {
 				$this->model_account_gdpr->editStatus($code, 1);
@@ -179,7 +180,7 @@ class ControllerInformationGdpr extends Controller {
 
 			$this->response->setOutput($this->load->view('common/success', $data));
 		} else {
-			return new Action('error/not_found');
+			return new \Opencart\System\Engine\Action('error/not_found');
 		}
 	}
 }

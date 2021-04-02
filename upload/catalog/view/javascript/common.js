@@ -23,6 +23,8 @@ function getURLVar(key) {
 }
 
 $(document).ready(function() {
+	$('form').trigger('reset');
+
 	// Highlight any found errors
 	$('.text-danger').each(function() {
 		var element = $(this).parent().find(':input');
@@ -49,9 +51,9 @@ $(document).ready(function() {
 		$('#form-currency').submit();
 	});
 
-	/* Search */
+	// Search
 	$('#search input[name=\'search\']').parent().find('button').on('click', function() {
-		var url = $('base').attr('href') + 'index.php?route=product/search';
+		var url = $('base').attr('href') + 'index.php?route=product/search&language=' + $(this).attr('data-lang');
 
 		var value = $('header #search input[name=\'search\']').val();
 
@@ -80,11 +82,13 @@ $(document).ready(function() {
 		}
 	});
 
+
+
 	// Product List
 	$('#list-view').click(function() {
 		$('#content .product-grid > .clearfix').remove();
 
-		$('#content .row > .product-grid').attr('class', 'product-layout product-list col-xs-12');
+		$('#content .row > .product-grid').attr('class', 'product-layout product-list col-12');
 
 		$('#grid-view').removeClass('active');
 		$('#list-view').addClass('active');
@@ -92,13 +96,13 @@ $(document).ready(function() {
 		localStorage.setItem('display', 'list');
 	});
 
+	var cols = $('#column-left, #column-right').length;
+
 	// Product Grid
 	$('#grid-view').click(function() {
 		// What a shame bootstrap does not take into account dynamically loaded columns
-		var cols = $('#column-right, #column-left').length;
-
 		if (cols == 2) {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-6 col-md-6 col-sm-12 col-sm-12');
+			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-6 col-md-6 col-sm-12 col-12');
 		} else if (cols == 1) {
 			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-12');
 		} else {
@@ -119,25 +123,67 @@ $(document).ready(function() {
 		$('#grid-view').addClass('active');
 	}
 
-	// Cookie Policy
-	$('#button-cookie').on('click', function(e) {
+	// Column Left / Right Module
+	$('#column-left .product-module, #column-right .product-module').attr('class', 'product-layout product-module col-12');
+
+	// Product Module on Pages
+	if (cols == 2) {
+		$('#content.col').attr('class', 'col-md-6 col-12');
+		$('#content .product-module').attr('class', 'product-layout product-module col-lg-6 col-md-6 col-sm-6 col-12');
+	} else if (cols == 1) {
+		$('#content.col').attr('class', 'col-md-9 col-12');
+		$('#content .product-module').attr('class', 'product-layout product-module col-lg-4 col-md-4 col-sm-6 col-12');
+	} else {
+		$('#content.col').attr('class', 'col-12');
+		$('#content .product-module').attr('class', 'product-layout product-module col-lg-3 col-md-3 col-sm-6 col-12');
+	}
+
+
+
+
+
+	/* Agree to Terms */
+	$('body').on('click', '.modal-link', function(e) {
 		e.preventDefault();
 
+		var element = this;
+
+		$('#modal-information').remove();
+
 		$.ajax({
-			url: 'index.php?route=common/cookie/agree',
+			url: $(element).attr('href'),
+			dataType: 'html',
+			success: function(html) {
+				$('body').append(html);
+
+				$('#modal-information').modal('show');
+			}
+		});
+	});
+
+	// Cookie Policy
+	$('#cookie button').on('click', function() {
+		var element = this;
+
+		$.ajax({
+			url: $(this).val(),
+			type: 'get',
 			dataType: 'json',
 			beforeSend: function() {
-				$('#button-cookie').button('loading');
+				$(element).button('loading');
 			},
 			complete: function() {
-				$('#button-cookie').button('reset');
+				$(element).button('reset');
 			},
 			success: function(json) {
 				if (json['success']) {
-					$('#cookie').slideUp(400, function() {
+					$('#cookie').fadeOut(400, function() {
 						$('#cookie').remove();
 					});
 				}
+			},
+			error: function(xhr, ajaxOptions, thrownError) {
+				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
 			}
 		});
 	});
@@ -147,9 +193,9 @@ $(document).ready(function() {
 var cart = {
 	'add': function(product_id, quantity) {
 		$.ajax({
-			url: 'index.php?route=checkout/cart/add',
+			url: 'index.php?route=checkout/cart|add',
 			type: 'post',
-			data: 'product_id=' + product_id + '&quantity=' + (typeof(quantity) != 'undefined' ? quantity : 1),
+			data: 'product_id=' + product_id + '&quantity=' + (typeof (quantity) != 'undefined' ? quantity : 1),
 			dataType: 'json',
 			beforeSend: function() {
 				$('#cart > button').button('loading');
@@ -166,22 +212,17 @@ var cart = {
 				}
 
 				if (json['success']) {
-					html  = '<div id="toast" class="toast">';
-					html += '  <div class="toast-header">';
-					html += '    <strong class="mr-auto"><i class="fas fa-shopping-cart"></i> Shopping Cart</strong>';
-					html += '    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>';
-					html += '  </div>';
-					html += '  <div class="toast-body">' + json['success'] + '</div>';
+					html  = '<div class="toast">';
+					html += '  <div class="toast-body"><button type="button" class="ml-2 mb-1 close float-right" data-dismiss="toast">&times;</button> ' + json['success'] + '</div>';
 					html += '</div>';
 
-					$('body').append(html);
+					$('#toast').prepend(html);
 
-					$('#toast').toast({'delay': 3000});
-
-					$('#toast').toast('show');
+					$('#toast .toast:first-child').toast({'delay': 3000});
+					$('#toast .toast:first-child').toast('show');
 
 					// Need to set timeout otherwise it wont update the total
-					$('#cart').parent().load('index.php?route=common/cart/info');
+					$('#cart').parent().load('index.php?route=common/cart|info');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -191,9 +232,9 @@ var cart = {
 	},
 	'update': function(key, quantity) {
 		$.ajax({
-			url: 'index.php?route=checkout/cart/edit',
+			url: 'index.php?route=checkout/cart|edit',
 			type: 'post',
-			data: 'key=' + key + '&quantity=' + (typeof(quantity) != 'undefined' ? quantity : 1),
+			data: 'key=' + key + '&quantity=' + (typeof (quantity) != 'undefined' ? quantity : 1),
 			dataType: 'json',
 			beforeSend: function() {
 				$('#cart > button').button('loading');
@@ -205,7 +246,7 @@ var cart = {
 				if (getURLVar('route') == 'checkout/cart' || getURLVar('route') == 'checkout/checkout') {
 					location = 'index.php?route=checkout/cart';
 				} else {
-					$('#cart').parent().load('index.php?route=common/cart/info');
+					$('#cart').parent().load('index.php?route=common/cart|info');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -215,7 +256,7 @@ var cart = {
 	},
 	'remove': function(key) {
 		$.ajax({
-			url: 'index.php?route=checkout/cart/remove',
+			url: 'index.php?route=checkout/cart|remove',
 			type: 'post',
 			data: 'key=' + key,
 			dataType: 'json',
@@ -229,7 +270,7 @@ var cart = {
 				if (getURLVar('route') == 'checkout/cart' || getURLVar('route') == 'checkout/checkout') {
 					location = 'index.php?route=checkout/cart';
 				} else {
-					$('#cart').parent().load('index.php?route=common/cart/info');
+					$('#cart').parent().load('index.php?route=common/cart|info');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -245,7 +286,7 @@ var voucher = {
 	},
 	'remove': function(key) {
 		$.ajax({
-			url: 'index.php?route=checkout/cart/remove',
+			url: 'index.php?route=checkout/cart|remove',
 			type: 'post',
 			data: 'key=' + key,
 			dataType: 'json',
@@ -259,7 +300,7 @@ var voucher = {
 				if (getURLVar('route') == 'checkout/cart' || getURLVar('route') == 'checkout/checkout') {
 					location = 'index.php?route=checkout/cart';
 				} else {
-					$('#cart').parent().load('index.php?route=common/cart/info');
+					$('#cart').parent().load('index.php?route=common/cart|info');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -272,31 +313,26 @@ var voucher = {
 var wishlist = {
 	'add': function(product_id) {
 		$.ajax({
-			url: 'index.php?route=account/wishlist/add',
+			url: 'index.php?route=account/wishlist|add',
 			type: 'post',
 			data: 'product_id=' + product_id,
 			dataType: 'json',
 			success: function(json) {
-				$('#toast').remove();
+				$('.toast').remove();
 
 				if (json['redirect']) {
 					location = json['redirect'];
 				}
 
 				if (json['success']) {
-					html  = '<div id="toast" class="toast">';
-					html += '  <div class="toast-header">';
-					html += '    <strong class="mr-auto"><i class="fas fa-shopping-cart"></i> Shopping Cart</strong>';
-					html += '    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>';
-					html += '  </div>';
-					html += '  <div class="toast-body">' + json['success'] + '</div>';
+					html  = '<div class="toast">';
+					html += '  <div class="toast-body"><button type="button" class="ml-2 mb-1 close float-right" data-dismiss="toast">&times;</button> ' + json['success'] + '</div>';
 					html += '</div>';
 
-					$('body').append(html);
+					$('#toast').prepend(html);
 
-					$('#toast').toast({'delay': 3000});
-
-					$('#toast').toast('show');
+					$('#toast .toast:first-child').toast({'delay': 3000});
+					$('#toast .toast:first-child').toast('show');
 				}
 
 				$('#wishlist-total span').html(json['total']);
@@ -315,27 +351,22 @@ var wishlist = {
 var compare = {
 	'add': function(product_id) {
 		$.ajax({
-			url: 'index.php?route=product/compare/add',
+			url: 'index.php?route=product/compare|add',
 			type: 'post',
 			data: 'product_id=' + product_id,
 			dataType: 'json',
 			success: function(json) {
-				$('#toast').remove();
+				$('.toast').remove();
 
 				if (json['success']) {
-					html  = '<div id="toast" class="toast">';
-					html += '  <div class="toast-header">';
-					html += '    <strong class="mr-auto"><i class="fas fa-shopping-cart"></i> Shopping Cart</strong>';
-					html += '    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>';
-					html += '  </div>';
-					html += '  <div class="toast-body">' + json['success'] + '</div>';
+					html  = '<div class="toast">';
+					html += '  <div class="toast-body"><button type="button" class="ml-2 mb-1 close float-right" data-dismiss="toast">&times;</button> ' + json['success'] + '</div>';
 					html += '</div>';
 
-					$('body').append(html);
+					$('#toast').prepend(html);
 
-					$('#toast').toast({'delay': 3000});
-
-					$('#toast').toast('show');
+					$('#toast .toast:first-child').toast({'delay': 3000});
+					$('#toast .toast:first-child').toast('show');
 
 					$('#compare-total').html(json['total']);
 				}
@@ -349,38 +380,6 @@ var compare = {
 
 	}
 };
-
-/* Agree to Terms */
-$(document).delegate('.agree', 'click', function(e) {
-	e.preventDefault();
-
-	$('#modal-agree').remove();
-
-	var element = this;
-
-	$.ajax({
-		url: $(element).attr('href'),
-		type: 'get',
-		dataType: 'html',
-		success: function(data) {
-			html = '<div id="modal-agree" class="modal fade">';
-			html += '  <div class="modal-dialog">';
-			html += '    <div class="modal-content">';
-			html += '      <div class="modal-header">';
-			html += '        <h4 class="modal-title">' + $(element).text() + '</h4>';
-			html += '        <button type="button" class="close" data-dismiss="toast">&times;</button>';
-			html += '      </div>';
-			html += '      <div class="modal-body">' + data + '</div>';
-			html += '    </div>';
-			html += '  </div>';
-			html += '</div>';
-
-			$('body').append(html);
-
-			$('#modal-agree').modal('show');
-		}
-	});
-});
 
 // Chain ajax calls.
 class Chain {
@@ -412,31 +411,49 @@ class Chain {
 
 var chain = new Chain();
 
-// Autocomplete */
+// Autocomplete
 (function($) {
 	$.fn.autocomplete = function(option) {
 		return this.each(function() {
+			var $this = $(this);
+			var $dropdown = $('<div class="dropdown-menu"/>');
+
 			this.timer = null;
-			this.items = new Array();
+			this.items = [];
 
 			$.extend(this, option);
 
-			$(this).attr('autocomplete', 'off');
+			if (!$(this).parent().hasClass('input-group')) {
+				$(this).wrap('<div class="dropdown">');
+			} else {
+				$(this).parent().wrap('<div class="dropdown">');
+			}
+
+			$this.attr('autocomplete', 'off');
+			$this.active = false;
 
 			// Focus
-			$(this).on('focus', function() {
+			$this.on('focus', function() {
 				this.request();
 			});
 
 			// Blur
-			$(this).on('blur', function() {
-				setTimeout(function(object) {
-					object.hide();
-				}, 200, this);
+			$this.on('blur', function(e) {
+				if (!$this.active) {
+					this.hide();
+				}
+			});
+
+			$this.parent().on('mouseover', function(e) {
+				$this.active = true;
+			});
+
+			$this.parent().on('mouseout', function(e) {
+				$this.active = false;
 			});
 
 			// Keydown
-			$(this).on('keydown', function(event) {
+			$this.on('keydown', function(event) {
 				switch (event.keyCode) {
 					case 27: // escape
 						this.hide();
@@ -451,29 +468,24 @@ var chain = new Chain();
 			this.click = function(event) {
 				event.preventDefault();
 
-				value = $(event.target).parent().attr('data-value');
+				var value = $(event.target).attr('href');
 
 				if (value && this.items[value]) {
 					this.select(this.items[value]);
+
+					this.hide();
 				}
-			};
+			}
 
 			// Show
 			this.show = function() {
-				var pos = $(this).position();
-
-				$(this).siblings('ul.dropdown-menu').css({
-					top: pos.top + $(this).outerHeight(),
-					left: pos.left
-				});
-
-				$(this).siblings('ul.dropdown-menu').show();
-			};
+				$dropdown.addClass('show');
+			}
 
 			// Hide
 			this.hide = function() {
-				$(this).siblings('ul.dropdown-menu').hide();
-			};
+				$dropdown.removeClass('show');
+			}
 
 			// Request
 			this.request = function() {
@@ -481,44 +493,41 @@ var chain = new Chain();
 
 				this.timer = setTimeout(function(object) {
 					object.source($(object).val(), $.proxy(object.response, object));
-				}, 200, this);
-			};
+				}, 50, this);
+			}
 
 			// Response
 			this.response = function(json) {
-				html = '';
+				var html = '';
+				var category = {};
+				var name;
+				var i = 0, j = 0;
 
 				if (json.length) {
 					for (i = 0; i < json.length; i++) {
+						// update element items
 						this.items[json[i]['value']] = json[i];
-					}
 
-					for (i = 0; i < json.length; i++) {
 						if (!json[i]['category']) {
-							html += '<li data-value="' + json[i]['value'] + '"><a href="#">' + json[i]['label'] + '</a></li>';
-						}
-					}
+							// ungrouped items
+							html += '<a href="' + json[i]['value'] + '" class="dropdown-item">' + json[i]['label'] + '</a>';
+						} else {
+							// grouped items
+							name = json[i]['category'];
 
-					// Get all the ones with a categories
-					var category = new Array();
-
-					for (i = 0; i < json.length; i++) {
-						if (json[i]['category']) {
-							if (!category[json[i]['category']]) {
-								category[json[i]['category']] = new Array();
-								category[json[i]['category']]['name'] = json[i]['category'];
-								category[json[i]['category']]['item'] = new Array();
+							if (!category[name]) {
+								category[name] = [];
 							}
 
-							category[json[i]['category']]['item'].push(json[i]);
+							category[name].push(json[i]);
 						}
 					}
 
-					for (i in category) {
-						html += '<li class="dropdown-header">' + category[i]['name'] + '</li>';
+					for (name in category) {
+						html += '<h6 class="dropdown-header">' + name + '</h6>';
 
-						for (j = 0; j < category[i]['item'].length; j++) {
-							html += '<li data-value="' + category[i]['item'][j]['value'] + '"><a href="#">&nbsp;&nbsp;&nbsp;' + category[i]['item'][j]['label'] + '</a></li>';
+						for (j = 0; j < category[name].length; j++) {
+							html += '<a href="' + category[name][j]['value'] + '" class="dropdown-item">&nbsp;&nbsp;&nbsp;' + category[name][j]['label'] + '</a>';
 						}
 					}
 				}
@@ -529,13 +538,14 @@ var chain = new Chain();
 					this.hide();
 				}
 
-				$(this).siblings('ul.dropdown-menu').html(html);
-			};
+				$dropdown.html(html);
+			}
 
-			$(this).after('<ul class="dropdown-menu"></ul>');
-			$(this).siblings('ul.dropdown-menu').delegate('a', 'click', $.proxy(this.click, this));
+			$dropdown.on('click', '> a', $.proxy(this.click, this));
+
+			$this.after($dropdown);
 		});
-	};
+	}
 })(window.jQuery);
 
 +function($) {
@@ -601,7 +611,6 @@ var chain = new Chain();
 			this.$element.toggleClass('active')
 		}
 	}
-
 
 	// BUTTON PLUGIN DEFINITION
 	// ========================

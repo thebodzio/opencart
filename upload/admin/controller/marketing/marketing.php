@@ -1,8 +1,9 @@
 <?php
-class ControllerMarketingMarketing extends Controller {
-	private $error = array();
+namespace Opencart\Admin\Controller\Marketing;
+class Marketing extends \Opencart\System\Engine\Controller {
+	private array $error = [];
 
-	public function index() {
+	public function index(): void {
 		$this->load->language('marketing/marketing');
 
 		$this->document->setTitle($this->language->get('heading_title'));
@@ -12,141 +13,31 @@ class ControllerMarketingMarketing extends Controller {
 		$this->getList();
 	}
 
-	public function add() {
+	public function add(): void {
 		$this->load->language('marketing/marketing');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$this->load->model('marketing/marketing');
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_marketing_marketing->addMarketing($this->request->post);
-
-			$this->session->data['success'] = $this->language->get('text_success');
-
-			$url = '';
-
-			if (isset($this->request->get['filter_name'])) {
-				$url .= '&filter_name=' . urlencode(html_entity_decode($this->request->get['filter_name'], ENT_QUOTES, 'UTF-8'));
-			}
-
-			if (isset($this->request->get['filter_code'])) {
-				$url .= '&filter_code=' . $this->request->get['filter_code'];
-			}
-
-			if (isset($this->request->get['filter_date_added'])) {
-				$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
-			}
-
-			if (isset($this->request->get['sort'])) {
-				$url .= '&sort=' . $this->request->get['sort'];
-			}
-
-			if (isset($this->request->get['order'])) {
-				$url .= '&order=' . $this->request->get['order'];
-			}
-
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			$this->response->redirect($this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url));
-		}
+		$this->model_marketing_marketing->addMarketing($this->request->post);
 
 		$this->getForm();
 	}
 
-	public function edit() {
+	public function edit(): void {
 		$this->load->language('marketing/marketing');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$this->load->model('marketing/marketing');
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_marketing_marketing->editMarketing($this->request->get['marketing_id'], $this->request->post);
-
-			$this->session->data['success'] = $this->language->get('text_success');
-
-			$url = '';
-
-			if (isset($this->request->get['filter_name'])) {
-				$url .= '&filter_name=' . urlencode(html_entity_decode($this->request->get['filter_name'], ENT_QUOTES, 'UTF-8'));
-			}
-
-			if (isset($this->request->get['filter_code'])) {
-				$url .= '&filter_code=' . $this->request->get['filter_code'];
-			}
-
-			if (isset($this->request->get['filter_date_added'])) {
-				$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
-			}
-
-			if (isset($this->request->get['sort'])) {
-				$url .= '&sort=' . $this->request->get['sort'];
-			}
-
-			if (isset($this->request->get['order'])) {
-				$url .= '&order=' . $this->request->get['order'];
-			}
-
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			$this->response->redirect($this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url));
-		}
+		$this->model_marketing_marketing->editMarketing($this->request->get['marketing_id'], $this->request->post);
 
 		$this->getForm();
 	}
 
-	public function delete() {
-		$this->load->language('marketing/marketing');
-
-		$this->document->setTitle($this->language->get('heading_title'));
-
-		$this->load->model('marketing/marketing');
-
-		if (isset($this->request->post['selected']) && $this->validateDelete()) {
-			foreach ($this->request->post['selected'] as $marketing_id) {
-				$this->model_marketing_marketing->deleteMarketing($marketing_id);
-			}
-
-			$this->session->data['success'] = $this->language->get('text_success');
-
-			$url = '';
-
-			if (isset($this->request->get['filter_name'])) {
-				$url .= '&filter_name=' . urlencode(html_entity_decode($this->request->get['filter_name'], ENT_QUOTES, 'UTF-8'));
-			}
-
-			if (isset($this->request->get['filter_code'])) {
-				$url .= '&filter_code=' . $this->request->get['filter_code'];
-			}
-
-			if (isset($this->request->get['filter_date_added'])) {
-				$url .= '&filter_date_added=' . $this->request->get['filter_date_added'];
-			}
-
-			if (isset($this->request->get['sort'])) {
-				$url .= '&sort=' . $this->request->get['sort'];
-			}
-
-			if (isset($this->request->get['order'])) {
-				$url .= '&order=' . $this->request->get['order'];
-			}
-
-			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
-			}
-
-			$this->response->redirect($this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url));
-		}
-
-		$this->getList();
-	}
-
-	protected function getList() {
+	protected function getList(): void {
 		if (isset($this->request->get['filter_name'])) {
 			$filter_name = $this->request->get['filter_name'];
 		} else {
@@ -168,7 +59,7 @@ class ControllerMarketingMarketing extends Controller {
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
-			$sort = 'name';
+			$sort = 'm.name';
 		}
 
 		if (isset($this->request->get['order'])) {
@@ -178,7 +69,7 @@ class ControllerMarketingMarketing extends Controller {
 		}
 
 		if (isset($this->request->get['page'])) {
-			$page = $this->request->get['page'];
+			$page = (int)$this->request->get['page'];
 		} else {
 			$page = 1;
 		}
@@ -213,47 +104,47 @@ class ControllerMarketingMarketing extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url)
-		);
+		];
 
-		$data['add'] = $this->url->link('marketing/marketing/add', 'user_token=' . $this->session->data['user_token'] . $url);
-		$data['delete'] = $this->url->link('marketing/marketing/delete', 'user_token=' . $this->session->data['user_token'] . $url);
+		$data['add'] = $this->url->link('marketing/marketing|add', 'user_token=' . $this->session->data['user_token'] . $url);
+		$data['delete'] = $this->url->link('marketing/marketing|delete', 'user_token=' . $this->session->data['user_token'] . $url);
 
-		$data['marketings'] = array();
+		$data['marketings'] = [];
 
-		$filter_data = array(
+		$filter_data = [
 			'filter_name'       => $filter_name,
 			'filter_code'       => $filter_code,
 			'filter_date_added' => $filter_date_added,
 			'sort'              => $sort,
 			'order'             => $order,
-			'start'             => ($page - 1) * $this->config->get('config_limit_admin'),
-			'limit'             => $this->config->get('config_limit_admin')
-		);
+			'start'             => ($page - 1) * $this->config->get('config_pagination_admin'),
+			'limit'             => $this->config->get('config_pagination_admin')
+		];
 
 		$marketing_total = $this->model_marketing_marketing->getTotalMarketings($filter_data);
 
 		$results = $this->model_marketing_marketing->getMarketings($filter_data);
 
 		foreach ($results as $result) {
-			$data['marketings'][] = array(
+			$data['marketings'][] = [
 				'marketing_id' => $result['marketing_id'],
 				'name'         => $result['name'],
 				'code'         => $result['code'],
 				'clicks'       => $result['clicks'],
 				'orders'       => $result['orders'],
 				'date_added'   => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
-				'edit'         => $this->url->link('marketing/marketing/edit', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $result['marketing_id'] . $url)
-			);
+				'edit'         => $this->url->link('marketing/marketing|edit', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $result['marketing_id'] . $url)
+			];
 		}
 
 		$data['user_token'] = $this->session->data['user_token'];
@@ -275,7 +166,7 @@ class ControllerMarketingMarketing extends Controller {
 		if (isset($this->request->post['selected'])) {
 			$data['selected'] = (array)$this->request->post['selected'];
 		} else {
-			$data['selected'] = array();
+			$data['selected'] = [];
 		}
 
 		$url = '';
@@ -328,14 +219,14 @@ class ControllerMarketingMarketing extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
-		$data['pagination'] = $this->load->controller('common/pagination', array(
+		$data['pagination'] = $this->load->controller('common/pagination', [
 			'total' => $marketing_total,
 			'page'  => $page,
-			'limit' => $this->config->get('config_limit_admin'),
+			'limit' => $this->config->get('config_pagination_admin'),
 			'url'   => $this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}')
-		));
+		]);
 
-		$data['results'] = sprintf($this->language->get('text_pagination'), ($marketing_total) ? (($page - 1) * $this->config->get('config_limit_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_limit_admin')) > ($marketing_total - $this->config->get('config_limit_admin'))) ? $marketing_total : ((($page - 1) * $this->config->get('config_limit_admin')) + $this->config->get('config_limit_admin')), $marketing_total, ceil($marketing_total / $this->config->get('config_limit_admin')));
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($marketing_total) ? (($page - 1) * $this->config->get('config_pagination_admin')) + 1 : 0, ((($page - 1) * $this->config->get('config_pagination_admin')) > ($marketing_total - $this->config->get('config_pagination_admin'))) ? $marketing_total : ((($page - 1) * $this->config->get('config_pagination_admin')) + $this->config->get('config_pagination_admin')), $marketing_total, ceil($marketing_total / $this->config->get('config_pagination_admin')));
 
 		$data['filter_name'] = $filter_name;
 		$data['filter_code'] = $filter_code;
@@ -351,7 +242,7 @@ class ControllerMarketingMarketing extends Controller {
 		$this->response->setOutput($this->load->view('marketing/marketing_list', $data));
 	}
 
-	protected function getForm() {
+	protected function getForm(): void {
 		$data['text_form'] = !isset($this->request->get['marketing_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
 
 		$data['user_token'] = $this->session->data['user_token'];
@@ -406,22 +297,22 @@ class ControllerMarketingMarketing extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url)
-		);
+		];
 
 		if (!isset($this->request->get['marketing_id'])) {
-			$data['action'] = $this->url->link('marketing/marketing/add', 'user_token=' . $this->session->data['user_token'] . $url);
+			$data['action'] = $this->url->link('marketing/marketing|add', 'user_token=' . $this->session->data['user_token'] . $url);
 		} else {
-			$data['action'] = $this->url->link('marketing/marketing/edit', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $this->request->get['marketing_id'] . $url);
+			$data['action'] = $this->url->link('marketing/marketing|edit', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $this->request->get['marketing_id'] . $url);
 		}
 
 		$data['cancel'] = $this->url->link('marketing/marketing', 'user_token=' . $this->session->data['user_token'] . $url);
@@ -465,7 +356,7 @@ class ControllerMarketingMarketing extends Controller {
 		$this->response->setOutput($this->load->view('marketing/marketing_form', $data));
 	}
 
-	protected function validateForm() {
+	public function save(): void {
 		if (!$this->user->hasPermission('modify', 'marketing/marketing')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
@@ -484,18 +375,40 @@ class ControllerMarketingMarketing extends Controller {
 			$this->error['code'] = $this->language->get('error_exists');
 		}
 
-		return !$this->error;
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 
-	protected function validateDelete() {
-		if (!$this->user->hasPermission('modify', 'marketing/marketing')) {
-			$this->error['warning'] = $this->language->get('error_permission');
+	public function delete(): void {
+		$this->load->language('marketing/marketing');
+
+		$json = [];
+
+		if (isset($this->request->post['selected'])) {
+			$selected = $this->request->post['selected'];
+		} else {
+			$selected = [];
 		}
 
-		return !$this->error;
+		if (!$this->user->hasPermission('modify', 'marketing/marketing')) {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
+			$this->load->model('marketing/marketing');
+
+			foreach ($selected as $marketing_id) {
+				$this->model_marketing_marketing->deleteMarketing($marketing_id);
+			}
+
+			$json['success'] = $this->language->get('text_success');
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
 	}
 
-	public function report() {
+	public function report(): void {
 		$this->load->language('marketing/marketing');
 
 		if (isset($this->request->get['marketing_id'])) {
@@ -505,12 +418,12 @@ class ControllerMarketingMarketing extends Controller {
 		}
 
 		if (isset($this->request->get['page'])) {
-			$page = $this->request->get['page'];
+			$page = (int)$this->request->get['page'];
 		} else {
 			$page = 1;
 		}
 
-		$data['reports'] = array();
+		$data['reports'] = [];
 
 		$this->load->model('marketing/marketing');
 		$this->load->model('customer/customer');
@@ -529,24 +442,24 @@ class ControllerMarketingMarketing extends Controller {
 				$store = '';
 			}
 
-			$data['reports'][] = array(
+			$data['reports'][] = [
 				'ip'         => $result['ip'],
 				'account'    => $this->model_customer_customer->getTotalCustomersByIp($result['ip']),
 				'store'      => $store,
 				'country'    => $result['country'],
 				'date_added' => date($this->language->get('datetime_format'), strtotime($result['date_added'])),
 				'filter_ip'  => $this->url->link('customer/customer', 'user_token=' . $this->session->data['user_token'] . '&filter_ip=' . $result['ip'])
-			);
+			];
 		}
 
 		$report_total = $this->model_marketing_marketing->getTotalReports($marketing_id);
 
-		$data['pagination'] = $this->load->controller('common/pagination', array(
+		$data['pagination'] = $this->load->controller('common/pagination', [
 			'total' => $report_total,
 			'page'  => $page,
 			'limit' => 10,
-			'url'   => $this->url->link('marketing/marketing/report', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $marketing_id . '&page={page}')
-		));
+			'url'   => $this->url->link('marketing/marketing|report', 'user_token=' . $this->session->data['user_token'] . '&marketing_id=' . $marketing_id . '&page={page}')
+		]);
 
 		$data['results'] = sprintf($this->language->get('text_pagination'), ($report_total) ? (($page - 1) * 10) + 1 : 0, ((($page - 1) * 10) > ($report_total - 10)) ? $report_total : ((($page - 1) * 10) + 10), $report_total, ceil($report_total / 10));
 

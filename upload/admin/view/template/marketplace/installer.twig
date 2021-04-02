@@ -1,194 +1,179 @@
 {{ header }}{{ column_left }}
 <div id="content">
-  <div class="page-header">
-    <div class="container-fluid">
-      <h1>{{ heading_title }}</h1>
-      <ol class="breadcrumb">
-        {% for breadcrumb in breadcrumbs %}
-          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
-        {% endfor %}
-      </ol>
-    </div>
-  </div>
-  <div class="container-fluid">
-    <div class="card">
-      <div class="card-header"><i class="fas fa-puzzle-piece"></i> {{ text_upload }}</div>
-      <div class="card-body">
-        <form>
-          <fieldset>
-            <legend>{{ text_upload }}</legend>
-            <div class="form-group row required">
-              <label for="button-upload" class="col-sm-2 col-form-label">{{ entry_upload }}</label>
-              <div class="col-sm-10">
-                <button type="button" id="button-upload" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fas fa-upload"></i> {{ button_upload }}</button>
-                <small class="form-text text-muted">{{ help_upload }}</small>
-              </div>
-            </div>
-          </fieldset>
-          <br/>
-          <fieldset>
-            <legend>{{ text_progress }}</legend>
-            <div class="form-group row">
-              <label class="col-sm-2 col-form-label">{{ entry_progress }}</label>
-              <div class="col-sm-10 mt-2">
-                <div class="progress">
-                  <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
-                </div>
-                <div id="progress-text"></div>
-              </div>
-            </div>
-          </fieldset>
-          <br/>
-          <fieldset>
-            <legend>{{ text_history }}</legend>
-            <div id="history"></div>
-          </fieldset>
-        </form>
-      </div>
-    </div>
-  </div>
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-right"><button type="button" id="button-upload" data-toggle="tooltip" title="{{ button_upload }}" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fas fa-upload"></i></button></div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header"><i class="fas fa-puzzle-piece"></i> {{ heading_title }}</div>
+			<div class="card-body">
+				<fieldset>
+					<legend>{{ text_progress }}</legend>
+					<div class="form-group row">
+						<label class="col-sm-2 col-form-label">{{ entry_progress }}</label>
+						<div class="col-sm-10 mt-2">
+							<div class="progress">
+								<div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+							</div>
+							<div id="progress-text"></div>
+						</div>
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>{{ text_installed }}</legend>
+					<div id="extension"></div>
+				</fieldset>
+			</div>
+		</div>
+	</div>
 </div>
 <script type="text/javascript"><!--
-$('#history').on('click', '.pagination a', function(e) {
-	e.preventDefault();
+$('#extension').on('click', 'thead a, .pagination a', function(e) {
+    e.preventDefault();
 
-	$('#history').load(this.href);
+    $('#extension').load(this.href);
 });
 
-$('#history').load('index.php?route=marketplace/installer/history&user_token={{ user_token }}');
+$('#extension').load('index.php?route=marketplace/installer|extension&user_token={{ user_token }}');
 
+// Upload
 $('#button-upload').on('click', function() {
-	$('#form-upload').remove();
+    $('#form-upload').remove();
 
-	$('body').prepend('<form enctype="multipart/form-data" id="form-upload" style="display: none;"><input type="file" name="file" /></form>');
+    $('body').prepend('<form enctype="multipart/form-data" id="form-upload" style="display: none;"><input type="file" name="file" /></form>');
 
-	$('#form-upload input[name=\'file\']').trigger('click');
+    $('#form-upload input[name=\'file\']').trigger('click');
 
-	if (typeof timer != 'undefined') {
-		clearInterval(timer);
-	}
+    $('#form-upload input[name=\'file\']').on('change', function() {
+        if (this.files[0].size > {{ config_file_max_size }}) {
+            $(this).val('');
 
-	timer = setInterval(function() {
-		if ($('#form-upload input[name=\'file\']').val() != '') {
-			clearInterval(timer);
+            alert('{{ error_upload_size }}');
+        }
+    });
 
-			// Reset everything
-			$('#progress-bar').css('width', '0%');
-			$('#progress-bar').removeClass('progress-bar-danger progress-bar-success');
-			$('#progress-text').html('');
+    if (typeof timer != 'undefined') {
+        clearInterval(timer);
+    }
 
-			$.ajax({
-				url: 'index.php?route=marketplace/installer/upload&user_token={{ user_token }}',
-				type: 'post',
-				dataType: 'json',
-				data: new FormData($('#form-upload')[0]),
-				cache: false,
-				contentType: false,
-				processData: false,
-				beforeSend: function() {
-					$('#button-upload').button('loading');
-				},
-				success: function(json) {
-					if (json['error']) {
-						$('#progress-bar').addClass('progress-bar-danger');
-						$('#progress-text').html('<div class="invalid-tooltip">' + json['error'] + '</div>');
+    timer = setInterval(function() {
+        if ($('#form-upload input[name=\'file\']').val() != '') {
+            clearInterval(timer);
 
-						$('#button-upload').button('reset');
-					}
+            $.ajax({
+                url: 'index.php?route=marketplace/installer|upload&user_token={{ user_token }}',
+                type: 'post',
+                dataType: 'json',
+                data: new FormData($('#form-upload')[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function() {
+                    $('#button-upload').button('loading');
+                },
+                complete: function() {
+                    $('#button-upload').button('reset');
+                },
+                success: function(json) {
+                    if (json['error']) {
+                        alert(json['error']);
+                    }
 
-					if (json['text']) {
-						$('#progress-bar').css('width', '20%');
-						$('#progress-text').html(json['text']);
-					}
+                    if (json['success']) {
+                        alert(json['success']);
 
-					if (json['next']) {
-						next(json['next'], 1);
-					}
-				},
-				error: function(xhr, ajaxOptions, thrownError) {
-					alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
-				}
-			});
-		}
-	}, 500);
+                        $('#extension').load('index.php?route=marketplace/installer|extension&user_token={{ user_token }}');
+                    }
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                }
+            });
+        }
+    }, 500);
 });
 
-function next(url, i) {
-	i = i + 1;
+// Install
+$('#extension').on('click', '.btn-success, .btn-warning', function(e) {
+    e.preventDefault();
 
-	$.ajax({
-		url: url,
-		dataType: 'json',
-		success: function(json) {
-			$('#progress-bar').css('width', (i * 20) + '%');
+    var element = this;
 
-			if (json['error']) {
-				$('#progress-bar').addClass('progress-bar-danger');
-				$('#progress-text').html('<div class="invalid-tooltip">' + json['error'] + '</div>');
+    $('#progress-bar').removeClass('progress-bar-danger progress-bar-success').css('width', '0%');
+    $('#progress-text').html('');
 
-				$('#button-upload').button('reset');
-			}
+    $.ajax({
+        url: $(element).attr('href'),
+        dataType: 'json',
+        beforeSend: function() {
+            $(element).button('loading');
+        },
+        complete: function() {
+            $(element).button('reset');
+        },
+        success: function(json) {
+            $('.alert-dismissible').remove();
 
-			if (json['success']) {
-				$('#progress-bar').addClass('progress-bar-success');
-				$('#progress-text').html('<span class="text-success">' + json['success'] + '</span>');
+            if (json['error']) {
+                $('#progress-bar').addClass('progress-bar-danger');
+                $('#progress-text').html('<div class="text-danger">' + json['error'] + '</div>');
+            }
 
-				$('#button-upload').button('reset');
+            if (json['success']) {
+                $('#progress-bar').addClass('progress-bar-success').css('width', '100%');
+                $('#progress-text').html('<div class="text-success">' + json['success'] + '</div>');
 
-				$('#history').load('index.php?route=marketplace/installer/history&user_token={{ user_token }}');
-			}
+                $('#extension').load('index.php?route=marketplace/installer|extension&user_token={{ user_token }}');
+            }
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+        }
+    });
+});
 
-			if (json['text']) {
-				$('#progress-text').html(json['text']);
-			}
+// Delete
+$('#extension').on('click', '.btn-danger', function(e) {
+    e.preventDefault();
 
-			if (json['next']) {
-				next(json['next'], i);
-			}
-		},
-		error: function(xhr, ajaxOptions, thrownError) {
-			alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
-		}
-	});
-}
+    var element = this;
 
-// Uninstall
-$('#history').on('click', '.btn-danger', function(e) {
-	e.preventDefault();
+    if (confirm('{{ text_confirm }}')) {
+        $.ajax({
+            url: $(element).attr('href'),
+            dataType: 'json',
+            beforeSend: function() {
+                $(element).button('loading');
+            },
+            complete: function() {
+                $(element).button('reset');
+            },
+            success: function(json) {
+                $('.alert-dismissible').remove();
 
-	var element = this;
+                if (json['error']) {
+                    $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fas fa-exclamation-circle"></i> ' + json['error'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+                }
 
-	$('#progress-bar').css('width', '0%');
-	$('#progress-bar').removeClass('progress-bar-danger progress-bar-success');
-	$('#progress-text').html('');
+                if (json['success']) {
+                    $('#content > .container-fluid').prepend('<div class="alert alert-success alert-dismissible"><i class="fas fa-exclamation-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
-	$.ajax({
-		url: 'index.php?route=marketplace/install/uninstall&user_token={{ user_token }}&extension_install_id=' + $(element).attr('value'),
-		dataType: 'json',
-		beforeSend: function() {
-			$(element).button('loading');
-		},
-		complete: function() {
-			$(element).button('reset');
-		},
-		success: function(json) {
-			if (json['error']) {
-				$('#progress-bar').addClass('progress-bar-danger');
-				$('#progress-text').html('<div class="invalid-tooltip">' + json['error'] + '</div>');
-			}
-
-			if (json['success']) {
-				$('#progress-bar').css('width', '100%');
-				$('#progress-bar').addClass('progress-bar-success');
-				$('#progress-text').html('<span class="text-success">' + json['success'] + '</div>');
-
-				$('#history').load('index.php?route=marketplace/installer/history&user_token={{ user_token }}');
-			}
-		},
-		error: function(xhr, ajaxOptions, thrownError) {
-			alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
-		}
-	});
+                    $('#extension').load('index.php?route=marketplace/installer|extension&user_token={{ user_token }}');
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+            }
+        });
+    }
 });
 //--></script>
 {{ footer }}

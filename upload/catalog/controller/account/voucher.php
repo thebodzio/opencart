@@ -1,18 +1,19 @@
 <?php
-class ControllerAccountVoucher extends Controller {
-	private $error = array();
+namespace Opencart\Catalog\Controller\Account;
+class Voucher extends \Opencart\System\Engine\Controller {
+	private $error = [];
 
-	public function index() {
+	public function index(): void {
 		$this->load->language('account/voucher');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		if (!isset($this->session->data['vouchers'])) {
-			$this->session->data['vouchers'] = array();
+			$this->session->data['vouchers'] = [];
 		}
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-			$this->session->data['vouchers'][mt_rand()] = array(
+			$this->session->data['vouchers'][mt_rand()] = [
 				'description'      => sprintf($this->language->get('text_for'), $this->currency->format($this->request->post['amount'], $this->session->data['currency'], 1.0), $this->request->post['to_name']),
 				'to_name'          => $this->request->post['to_name'],
 				'to_email'         => $this->request->post['to_email'],
@@ -21,27 +22,27 @@ class ControllerAccountVoucher extends Controller {
 				'voucher_theme_id' => $this->request->post['voucher_theme_id'],
 				'message'          => $this->request->post['message'],
 				'amount'           => $this->currency->convert($this->request->post['amount'], $this->session->data['currency'], $this->config->get('config_currency'))
-			);
+			];
 
-			$this->response->redirect($this->url->link('account/voucher/success', 'language=' . $this->config->get('config_language')));
+			$this->response->redirect($this->url->link('account/voucher|success', 'language=' . $this->config->get('config_language')));
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_account'),
 			'href' => $this->url->link('account/account', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_voucher'),
 			'href' => $this->url->link('account/voucher', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
 		$data['help_amount'] = sprintf($this->language->get('help_amount'), $this->currency->format($this->config->get('config_voucher_min'), $this->session->data['currency']), $this->currency->format($this->config->get('config_voucher_max'), $this->session->data['currency']));
 
@@ -87,7 +88,9 @@ class ControllerAccountVoucher extends Controller {
 			$data['error_amount'] = '';
 		}
 
-		$data['action'] = $this->url->link('account/voucher', 'language=' . $this->config->get('config_language'));
+		$this->session->data['voucher_token'] = substr(bin2hex(openssl_random_pseudo_bytes(26)), 0, 26);
+
+		$data['action'] = $this->url->link('account/voucher', 'language=' . $this->config->get('config_language') . '&voucher_token=' . $this->session->data['voucher_token']);
 
 		if (isset($this->request->post['to_name'])) {
 			$data['to_name'] = $this->request->post['to_name'];
@@ -117,9 +120,9 @@ class ControllerAccountVoucher extends Controller {
 			$data['from_email'] = '';
 		}
 
-		$this->load->model('extension/total/voucher_theme');
+		$this->load->model('account/voucher_theme');
 
-		$data['voucher_themes'] = $this->model_extension_total_voucher_theme->getVoucherThemes();
+		$data['voucher_themes'] = $this->model_account_voucher_theme->getVoucherThemes();
 
 		if (isset($this->request->post['voucher_theme_id'])) {
 			$data['voucher_theme_id'] = $this->request->post['voucher_theme_id'];
@@ -155,22 +158,22 @@ class ControllerAccountVoucher extends Controller {
 		$this->response->setOutput($this->load->view('account/voucher', $data));
 	}
 
-	public function success() {
+	public function success(): void {
 		$this->load->language('account/voucher');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('account/voucher', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
 		$data['continue'] = $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language'));
 
@@ -184,7 +187,27 @@ class ControllerAccountVoucher extends Controller {
 		$this->response->setOutput($this->load->view('common/success', $data));
 	}
 
-	protected function validate() {
+	protected function validate(): bool {
+		$keys = [
+			'to_name',
+			'to_email',
+			'from_name',
+			'from_email',
+			'voucher_theme_id',
+			'amount',
+			'agree'
+		];
+
+		foreach ($keys as $key) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = '';
+			}
+		}
+
+		if (!isset($this->request->get['voucher_token']) || !isset($this->session->data['voucher_token']) || ($this->session->data['voucher_token'] != $this->request->get['voucher_token'])) {
+			$this->error['warning'] = $this->language->get('error_token');
+		}
+
 		if ((utf8_strlen($this->request->post['to_name']) < 1) || (utf8_strlen($this->request->post['to_name']) > 64)) {
 			$this->error['to_name'] = $this->language->get('error_to_name');
 		}

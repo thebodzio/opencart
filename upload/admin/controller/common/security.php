@@ -1,6 +1,7 @@
 <?php
-class ControllerCommonSecurity extends Controller {
-	public function index() {
+namespace Opencart\Admin\Controller\Common;
+class Security extends \Opencart\System\Engine\Controller {
+	public function index(): string {
 		$this->load->language('common/security');
 
 		$data['user_token'] = $this->session->data['user_token'];
@@ -9,7 +10,7 @@ class ControllerCommonSecurity extends Controller {
 
 		$path = '';
 
-		$data['paths'] = array();
+		$data['paths'] = [];
 
 		$parts = explode('/', str_replace('\\', '/', rtrim(DIR_SYSTEM, '/')));
 
@@ -26,10 +27,10 @@ class ControllerCommonSecurity extends Controller {
 		return $this->load->view('common/security', $data);
 	}
 
-	public function move() {
+	public function move(): void {
 		$this->load->language('common/security');
 
-		$json = array();
+		$json = [];
 
 		if ($this->request->post['path']) {
 			$path = $this->request->post['path'];
@@ -67,10 +68,10 @@ class ControllerCommonSecurity extends Controller {
 			}
 
 			if (!$json) {
-				$files = array();
+				$files = [];
 
 				// Make path into an array
-				$source = array(DIR_SYSTEM . 'storage/');
+				$source = [DIR_SYSTEM . 'storage/'];
 
 				// While the path array is still populated keep looping through
 				while (count($source) != 0) {
@@ -106,10 +107,10 @@ class ControllerCommonSecurity extends Controller {
 				}
 
 				// Modify the config files
-				$files = array(
+				$files = [
 					DIR_APPLICATION . 'config.php',
 					realpath(DIR_APPLICATION . '/../') . '/config.php'
-				);
+				];
 
 				foreach ($files as $file) {
 					$output = '';

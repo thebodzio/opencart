@@ -1,8 +1,9 @@
 <?php
-class ControllerAccountLogin extends Controller {
-	private $error = array();
+namespace Opencart\Catalog\Controller\Account;
+class Login extends \Opencart\System\Engine\Controller {
+	private $error = [];
 
-	public function index() {
+	public function index(): void {
 		if ($this->customer->isLogged()) {
 			$this->response->redirect($this->url->link('account/account', 'language=' . $this->config->get('config_language')));
 		}
@@ -20,12 +21,10 @@ class ControllerAccountLogin extends Controller {
 			// Default Shipping Address
 			$this->load->model('account/address');
 
-			if ($this->config->get('config_tax_customer') == 'payment') {
-				$this->session->data['payment_address'] = $this->model_account_address->getAddress($this->customer->getAddressId());
-			}
+			$address_info = $this->model_account_address->getAddress($this->customer->getAddressId());
 
-			if ($this->config->get('config_tax_customer') == 'shipping') {
-				$this->session->data['shipping_address'] = $this->model_account_address->getAddress($this->customer->getAddressId());
+			if ($this->config->get('config_tax_customer') && $address_info) {
+				$this->session->data[$this->config->get('config_tax_customer') . '_address'] = $address_info;
 			}
 
 			// Wishlist
@@ -50,22 +49,22 @@ class ControllerAccountLogin extends Controller {
 			}
 		}
 
-		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'] = [];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_account'),
 			'href' => $this->url->link('account/account', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
-		$data['breadcrumbs'][] = array(
+		$data['breadcrumbs'][] = [
 			'text' => $this->language->get('text_login'),
 			'href' => $this->url->link('account/login', 'language=' . $this->config->get('config_language'))
-		);
+		];
 
 		if (isset($this->session->data['error'])) {
 			$data['error_warning'] = $this->session->data['error'];
@@ -77,7 +76,10 @@ class ControllerAccountLogin extends Controller {
 			$data['error_warning'] = '';
 		}
 
-		$data['action'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'));
+
+		$this->session->data['login_token'] = substr(bin2hex(openssl_random_pseudo_bytes(26)), 0, 26);
+
+		$data['action'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language') . '&login_token=' . $this->session->data['login_token']);
 		$data['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'));
 		$data['forgotten'] = $this->url->link('account/forgotten', 'language=' . $this->config->get('config_language'));
 
@@ -122,7 +124,22 @@ class ControllerAccountLogin extends Controller {
 		$this->response->setOutput($this->load->view('account/login', $data));
 	}
 
-	protected function validate() {
+	protected function validate(): bool {
+		$keys = [
+			'email',
+			'password'
+		];
+
+		foreach ($keys as $key) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = '';
+			}
+		}
+
+		if (!isset($this->request->get['login_token']) || !isset($this->session->data['login_token']) || ($this->session->data['login_token'] != $this->request->get['login_token'])) {
+			$this->error['warning'] = $this->language->get('error_token');
+		}
+
 		// Check how many login attempts have been made.
 		$login_info = $this->model_account_customer->getLoginAttempts($this->request->post['email']);
 
@@ -150,7 +167,7 @@ class ControllerAccountLogin extends Controller {
 		return !$this->error;
 	}
 
-	public function token() {
+	public function token(): void {
 		$this->load->language('account/login');
 
 		if (isset($this->request->get['email'])) {
@@ -189,13 +206,10 @@ class ControllerAccountLogin extends Controller {
 		if ($customer_info && $customer_info['token'] && $customer_info['token'] == $token && $this->customer->login($customer_info['email'], '', true)) {
 			// Default Addresses
 			$this->load->model('account/address');
+			$address_info = $this->model_account_address->getAddress($customer_info['address_id']);
 
-			if ($this->config->get('config_tax_customer') == 'payment') {
-				$this->session->data['payment_address'] = $this->model_account_address->getAddress($this->customer->getAddressId());
-			}
-
-			if ($this->config->get('config_tax_customer') == 'shipping') {
-				$this->session->data['shipping_address'] = $this->model_account_address->getAddress($this->customer->getAddressId());
+			if ($this->config->get('config_tax_customer') && $address_info) {
+				$this->session->data[$this->config->get('config_tax_customer') . '_address'] = $address_info;
 			}
 
 			$this->model_account_customer->editToken($email, '');

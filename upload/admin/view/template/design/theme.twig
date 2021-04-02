@@ -57,12 +57,12 @@
 <link href="view/javascript/codemirror/lib/codemirror.css" rel="stylesheet"/>
 <link href="view/javascript/codemirror/theme/monokai.css" rel="stylesheet"/>
 <script type="text/javascript" src="view/javascript/codemirror/lib/codemirror.js"></script>
-<script type="text/javascript" src="view/javascript/codemirror/lib/xml.js"></script>
-<script type="text/javascript" src="view/javascript/codemirror/lib/formatting.js"></script>
+<script type="text/javascript" src="view/javascript/codemirror/mode/xml.js"></script>
+<script type="text/javascript" src="view/javascript/codemirror/mode/htmlmixed.js"></script>
 <script type="text/javascript"><!--
 $('select[name=\'store_id\']').on('change', function(e) {
 	$.ajax({
-		url: 'index.php?route=design/theme/path&user_token={{ user_token }}&store_id=' + $('select[name=\'store_id\']').val(),
+		url: 'index.php?route=design/theme|path&user_token={{ user_token }}&store_id=' + $('select[name=\'store_id\']').val(),
 		dataType: 'json',
 		beforeSend: function() {
 			$('select[name=\'store_id\']').prop('disabled', true);
@@ -101,7 +101,7 @@ $('#path').on('click', 'a.directory', function(e) {
 	var element = this;
 
 	$.ajax({
-		url: 'index.php?route=design/theme/path&user_token={{ user_token }}&store_id=' + $('select[name=\'store_id\']').val() + '&path=' + $(element).attr('href'),
+		url: 'index.php?route=design/theme|path&user_token={{ user_token }}&store_id=' + $('select[name=\'store_id\']').val() + '&path=' + $(element).attr('href'),
 		dataType: 'json',
 		beforeSend: function() {
 			$(element).find('i').removeClass('fa-arrow-right');
@@ -123,6 +123,20 @@ $('#path').on('click', 'a.directory', function(e) {
 			if (json['file']) {
 				for (i = 0; i < json['file'].length; i++) {
 					html += '<a href="' + json['file'][i]['path'] + '" class="list-group-item list-group-item-action file">' + json['file'][i]['name'] + ' <i class="fas fa-arrow-right fa-fw float-right"></i></a>';
+				}
+			}
+
+			if (json['extension']) {
+				if (json['extension']['directory']) {
+					for (i = 0; i < json['extension']['directory'].length; i++) {
+						html += '<a href="' + json['extension']['directory'][i]['path'] + '" class="list-group-item list-group-item-action directory">' + json['extension']['directory'][i]['name'] + ' <i class="fas fa-arrow-right fa-fw float-right"></i></a>';
+					}
+				}
+
+				if (json['extension']['file']) {
+					for (i = 0; i < json['extension']['file'].length; i++) {
+						html += '<a href="' + json['extension']['file'][i]['path'] + '" class="list-group-item list-group-item-action file">' + json['extension']['file'][i]['name'] + ' <i class="fas fa-arrow-right fa-fw float-right"></i></a>';
+					}
 				}
 			}
 
@@ -156,7 +170,7 @@ $('#path').on('click', 'a.file', function(e) {
 
 	if (!editor['#tab-' + tab_id]) {
 		editor['#tab-' + tab_id] = $.ajax({
-			url: 'index.php?route=design/theme/template&user_token={{ user_token }}&store_id=' + $('select[name=\'store_id\']').val() + '&path=' + $(element).attr('href'),
+			url: 'index.php?route=design/theme|template&user_token={{ user_token }}&store_id=' + $('select[name=\'store_id\']').val() + '&path=' + $(element).attr('href'),
 			dataType: 'json',
 			beforeSend: function() {
 				$(element).find('i').removeClass('fa-arrow-right');
@@ -173,7 +187,7 @@ $('#path').on('click', 'a.file', function(e) {
 
 					$('.nav-tabs').append('<li class="nav-item"><a href="#tab-' + tab_id + '" data-toggle="tab" class="nav-link">' + $(element).attr('href').split('/').join(' / ') + '&nbsp;&nbsp;<i class="fas fa-minus-circle"></i></a></li>');
 
-					html = '<div class="tab-pane" id="tab-' + tab_id + '">';
+					html  = '<div class="tab-pane" id="tab-' + tab_id + '">';
 					html += '  <textarea name="code" rows="10" class="form-control"></textarea>';
 					html += '  <input type="hidden" name="store_id" value="' + $('select[name=\'store_id\']').val() + '" />';
 					html += '  <input type="hidden" name="path" value="' + $(element).attr('href') + '" />';
@@ -191,13 +205,14 @@ $('#path').on('click', 'a.file', function(e) {
 					// Initialize codemirrror
 					var codemirror = CodeMirror.fromTextArea(document.querySelector('.tab-content .active textarea'), {
 						mode: 'text/html',
-						height: '500px',
 						lineNumbers: true,
+						lineWrapping: true,
 						autofocus: true,
 						theme: 'monokai'
 					});
 
 					codemirror.setValue(json['code']);
+					codemirror.setSize('100%', '500px');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -244,7 +259,7 @@ $('.tab-content').on('click', '.btn-primary', function(e) {
 	var editor = $('.tab-content .active .CodeMirror')[0].CodeMirror;
 
 	$.ajax({
-		url: 'index.php?route=design/theme/save&user_token={{ user_token }}&store_id=' + $('.tab-content .active input[name=\'store_id\']').val() + '&path=' + $('.tab-content .active input[name="path"]').val(),
+		url: 'index.php?route=design/theme|save&user_token={{ user_token }}&store_id=' + $('.tab-content .active input[name=\'store_id\']').val() + '&path=' + $('.tab-content .active input[name=\'path\']').val(),
 		type: 'post',
 		data: 'code=' + encodeURIComponent(editor.getValue()),
 		dataType: 'json',
@@ -264,7 +279,7 @@ $('.tab-content').on('click', '.btn-primary', function(e) {
 			if (json['success']) {
 				$('#content > .container-fluid').prepend('<div class="alert alert-success alert-dismissible"><i class="fas fa-exclamation-circle"></i> ' + json['success'] + '  <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
-				$('#history').load('index.php?route=design/theme/history&user_token={{ user_token }}');
+				$('#history').load('index.php?route=design/theme|history&user_token={{ user_token }}');
 			}
 		},
 		error: function(xhr, ajaxOptions, thrownError) {
@@ -278,7 +293,7 @@ $('.tab-content').on('click', '.btn-danger', function(e) {
 		var element = this;
 
 		$.ajax({
-			url: 'index.php?route=design/theme/reset&user_token={{ user_token }}&store_id=' + $('.tab-content .active input[name=\'store_id\']').val() + '&path=' + $('.tab-content .active input[name=\'path\']').val(),
+			url: 'index.php?route=design/theme|reset&user_token={{ user_token }}&store_id=' + $('.tab-content .active input[name=\'store_id\']').val() + '&path=' + $('.tab-content .active input[name=\'path\']').val(),
 			dataType: 'json',
 			beforeSend: function() {
 				$(element).button('loading');
@@ -300,6 +315,7 @@ $('.tab-content').on('click', '.btn-danger', function(e) {
 				var codemirror = $('.tab-content .active .CodeMirror')[0].CodeMirror;
 
 				codemirror.setValue(json['code']);
+				codemirror.setSize('100%', '500px');
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
 				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
@@ -314,7 +330,7 @@ $('#history').on('click', '.pagination a', function(e) {
 	$('#history').load(this.href);
 });
 
-$('#history').load('index.php?route=design/theme/history&user_token={{ user_token }}');
+$('#history').load('index.php?route=design/theme|history&user_token={{ user_token }}');
 
 $('#history').on('click', '.btn-primary', function(e) {
 	e.preventDefault();
@@ -326,7 +342,7 @@ $('#history').on('click', '.btn-primary', function(e) {
 
 	if (!editor['#tab-' + tab_id]) {
 		$.ajax({
-			url: 'index.php?route=design/theme/template&user_token={{ user_token }}&store_id=' + $(element).parent().parent().find('input[name=\'store_id\']').val() + '&path=' + $(element).parent().parent().find('input[name=\'path\']').val(),
+			url: 'index.php?route=design/theme|template&user_token={{ user_token }}&store_id=' + $(element).parent().parent().find('input[name=\'store_id\']').val() + '&path=' + $(element).parent().parent().find('input[name=\'path\']').val(),
 			dataType: 'json',
 			beforeSend: function() {
 				$(element).button('loading');
@@ -359,13 +375,14 @@ $('#history').on('click', '.btn-primary', function(e) {
 					// Initialize codemirrror
 					var codemirror = CodeMirror.fromTextArea(document.querySelector('.tab-content .active textarea'), {
 						mode: 'text/html',
-						height: '500px',
 						lineNumbers: true,
+						lineWrapping: true,
 						autofocus: true,
 						theme: 'monokai'
 					});
 
 					codemirror.setValue(json['code']);
+					codemirror.setSize('100%', '500px');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -402,7 +419,7 @@ $('#history').on('click', '.btn-danger', function(e) {
 				if (json['success']) {
 					$('#history').before('<div class="alert alert-success alert-dismissible"><i class="fas fa-exclamation-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
-					$('#history').load('index.php?route=design/theme/history&user_token={{ user_token }}');
+					$('#history').load('index.php?route=design/theme|history&user_token={{ user_token }}');
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
